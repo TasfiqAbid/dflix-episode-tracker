@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "DFlix Episode Tracker",
+  "version": "1.1.3",
+  "description": "Remember the last episode and available playback position for each DFlix series.",
+  "permissions": [
+    "storage",
+    "scripting",
+    "activeTab"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://dflix.live/*",
+        "https://www.dflix.live/*"
+      ],
+      "js": [
+        "media.js",
+        "tracker.js"
+      ]
+    }
+  ],
+  "optional_host_permissions": [
+    "https://*/*"
+  ],
+  "action": {
+    "default_popup": "player.html",
+    "default_title": "DFlix player access",
+    "default_icon": {
+      "16": "icons/tracker-16.png",
+      "32": "icons/tracker-32.png",
+      "48": "icons/tracker-48.png",
+      "128": "icons/tracker-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/tracker-16.png",
+    "32": "icons/tracker-32.png",
+    "48": "icons/tracker-48.png",
+    "128": "icons/tracker-128.png"
+  }
+}
