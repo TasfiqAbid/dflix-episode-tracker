@@ -1,45 +1,44 @@
 # DFlix Episode Tracker
 
-An unofficial Chrome extension for dflix.live. It remembers the last selected season and episode for each series. On compatible players it also saves the playback time, so you can return with **Continue**.
+Save your place in a DFlix series and return to it with **Continue**. The extension remembers the season and episode for each series. On supported players, it also saves the playback position. Progress stays in your Chrome profile.
 
-## ছবি দেখে ইনস্টল করো · Desktop Chrome
+## Installation
 
-**১. ZIP extract করো।** ডাউনলোড করা ZIP-এ right-click → **Extract All**। Folder-টা যেখানে রাখতে চাও সেখানেই রাখো। File Explorer-এ খুলে দেখে নাও কোন folder-এর ভেতরে সরাসরি `manifest.json` আছে।
+1. Download the extension from this repository using **Code → Download ZIP**. Extract the archive to a permanent folder on your computer.
+2. In desktop Chrome, open `chrome://extensions`. Turn on **Developer mode**, then select **Load unpacked**.
 
-**২. Chrome-এ extension লোড করো।** Address bar-এ `chrome://extensions` লিখে Enter চাপো। ছবির সবুজ বক্সে **Developer mode** চালু করো। তারপর কমলা বক্সের **Load unpacked** চাপো।
+   ![Chrome Extensions page with Developer mode and Load unpacked highlighted](./chrome-extensions.png)
 
-![Chrome Extensions screenshot showing Developer mode and Load unpacked](docs/chrome-extensions.png)
+3. In the folder picker, open the extracted directory that contains `manifest.json` and click **Select Folder**. The folder picker may hide individual files. The path below is an example.
 
-**৩. সঠিক folder বেছে নাও।** যে folder-এ `manifest.json` দেখেছিলে, তার ভেতরে গিয়ে **Select Folder** চাপো। এই window-তে ফাইলগুলো দেখা না গেলেও ঠিক আছে। নিচের path-টা উদাহরণ।
+   ![Example of selecting the extracted extension directory on Windows](./select-folder.png)
 
-![Folder selection example with the Select Folder button](docs/select-folder.png)
+4. Refresh any open DFlix watch page. The **Episode tracker** panel appears in the lower-right corner.
 
-**৪. DFlix খুলে পরীক্ষা করো।** Watch page refresh করে ডানদিকের তালিকা থেকে যে episode দেখছ সেটা চাপো। নিচের screenshot-এ **NOW** দিয়ে চলতি episode দেখানো হয়েছে।
+## Resume an episode
 
-![DFlix episode panel with the NOW marker beside the selected episode](docs/choose-episode.png)
+Select an episode from the DFlix episode list and start playback. The **NOW** label identifies the active episode.
 
-১০ সেকেন্ড চালিয়ে pause করো। নিচে tracker-এ episode-এর পাশে সময় দেখলে পেজ refresh করে **Continue** চাপো। Player আগের সময় থেকে চললে setup শেষ।
+![DFlix episode list showing the NOW label on the active episode](./choose-episode.png)
 
-## Watch and resume
+When the tracker displays a time beside the episode number, it has detected the playback position. The next time you open the series, click **Continue**. If the saved episode belongs to a different season, select that season first.
 
-Select an episode and play it. When the tracker shows a timestamp beside the episode number, playback time is being saved. Reopen the series and click **Continue**. If prompted, choose the saved season first. Some players also require a click on **Play**.
+**If only the episode number appears**, open the extension from the Chrome toolbar while the video is playing. When the popup lists an embedded player host, select **Enable** for that host, refresh the watch page, and start playback again. Timestamp support depends on the player.
 
-If only the episode appears, open the extension popup while watching. If the video is embedded from a separate HTTPS host, the popup offers a button to enable that host. Grant access to the player you use, then refresh the watch page. Player compatibility depends on how the site embeds its video.
+## Privacy and permissions
 
-## Local data and permissions
+The extension stores the series identifier, season, episode, and playback position in Chrome’s local extension storage. It uses no analytics or external account service.
 
-The extension stores the series ID, season, episode, and playback position in Chrome's local extension storage. It has no analytics, account service, or remote backend. A permitted embedded player exchanges playback state and resume commands with its DFlix parent page.
+| Permission | Purpose |
+| --- | --- |
+| Storage | Save progress between viewing sessions. |
+| Active tab and scripting | Identify embedded players on the current DFlix watch page and enable the playback helper. |
+| Optional host access | Read playback time and resume video on the embedded player host you approve. |
 
-- **Storage** saves progress in the current Chrome profile.
-- **Active tab and scripting** let the popup inspect the current watch page for an embedded player and enable its playback helper.
-- **Optional HTTPS host access** is requested for the specific embedded host you select. Player hosts can vary by series.
+## Updates
 
-## Update and verify
+Extract the new version into the same installation folder. Open `chrome://extensions`, click **Reload** on the extension card, then refresh the DFlix watch page. Loading the extension from a different folder can create a separate progress history.
 
-Replace the files in the existing installation folder, click **Reload** on the extension card, then refresh the DFlix tab. Loading an unpacked copy from a different folder can give it a separate progress history.
+This is an independent project and is unaffiliated with DFlix.
 
-To test your player, watch for ten seconds, pause, refresh, and click **Continue**. Check both the episode and the player's timestamp. If reporting an issue, include the extension version and whether the tracker showed an episode, a timestamp, or both.
-
-This project is independent of DFlix.
-
-Chrome settings screenshot cropped from [Chrome for Developers](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Chrome settings screenshot adapted from [Chrome for Developers](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
