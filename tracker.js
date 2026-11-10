@@ -29,9 +29,27 @@
     return [...document.querySelectorAll('span,small,b,div,p,button,label,strong,h3,h4')]
       .filter(el => !el.children.length && el.getClientRects().length && pattern.test(el.textContent.trim()));
   }
-  function season() {
-    const opt = [...document.querySelectorAll('select')].map(el => el.selectedOptions[0]?.textContent.trim()).find(t => seasonPattern.test(t));
-    return Number((opt || leaves(seasonPattern)[0]?.textContent.trim() || '').match(seasonPattern)?.[1]);
+  function season(anchor) {
+    const selector = 'select, [role="combobox"], [aria-haspopup="listbox"], button, [role="button"], summary';
+    function readControl(el) {
+      if (!el.getClientRects().length || getComputedStyle(el).visibility === 'hidden') return;
+      const labels = [el.selectedOptions?.[0]?.textContent, el.innerText, el.getAttribute('aria-label')];
+      for (const label of labels) {
+        const match = label?.trim().match(seasonPattern);
+        if (match) return Number(match[1]);
+      }
+    }
+    // Start in the episode panel. A hidden desktop/mobile copy can retain another season.
+    for (let scope = anchor?.parentElement || document.body; scope; scope = scope.parentElement) {
+      const choices = new Set([...scope.querySelectorAll(selector)].map(readControl).filter(Boolean));
+      if (choices.size === 1) return [...choices][0];
+      if (choices.size > 1) break;
+    }
+    const labels = new Set(leaves(seasonPattern).map(el => Number(el.textContent.trim().match(seasonPattern)[1])));
+    return labels.size === 1 ? [...labels][0] : undefined;
+  }
+  function episodeId() {
+    return new URLSearchParams(location.search).get('e') || undefined;
   }
   function rowFor(badge) {
     for (let el = badge.parentElement; el && el !== document.body; el = el.parentElement) {
@@ -85,7 +103,10 @@
   }
   function record(s,e,time) {
     if (!key || !s || !e || restoring || stopped || !storageAvailable()) return;
+    const previousId = saved?.s === s && saved?.e === e ? saved.episodeId : undefined;
     saved = {s,e,time:Math.max(0,Math.floor(time || 0))};
+    const id = time > 0 && active() === e ? episodeId() : previousId;
+    if (id) saved.episodeId = id;
     chrome.storage.local.set({[key]: saved}).catch(storageError);
     render();
   }
@@ -93,7 +114,7 @@
     if (!key || restoring || !event.isTrusted) return;
     const badge = leaves(epPattern).find(el => rowFor(el)?.contains(event.target));
     if (!badge) return;
-    const e = Number(badge.textContent.trim().match(epPattern)[1]), s = season();
+    const e = Number(badge.textContent.trim().match(epPattern)[1]), s = season(badge);
     if (!s) return;
     clickedAt=Date.now(); locked=Boolean(saved?.s===s && saved?.e===e && saved?.time); selected = s + '/' + e; armed = false; tip.textContent = '';
     record(s,e,saved?.s === s && saved.e === e ? saved.time : 0);
@@ -103,7 +124,7 @@
     const m=media();
     if (!m || !(m.time>0)) return;
     const [chosenSeason,chosenEpisode]=selected.split('/').map(Number);
-    const s=season(), e=active() || (s===chosenSeason && chosenEpisode);
+    const s=season(leaves(/^NOW$/i)[0]), e=active() || (s===chosenSeason && chosenEpisode);
     if (!s || !e || (m.paused && !armed)) return;
     if (!m.paused) armed=true;
     const marker=[s,e,Math.floor(m.time)].join('/');
@@ -116,17 +137,22 @@
   button.onclick = async () => {
     if (restoring || !saved) return;
     const target = saved, original = key;
-    if (season() !== target.s) {
-      tip.textContent = 'Choose Season ' + target.s + ', then press Continue.'; return;
+    const badge = leaves(epPattern).find(el => Number(el.textContent.trim().match(epPattern)[1]) === Number(target.e));
+    const currentSeason = season(badge);
+    const sameEpisode = Boolean(target.episodeId && target.episodeId === episodeId());
+    if (!sameEpisode && currentSeason !== Number(target.s)) {
+      tip.textContent = currentSeason
+        ? 'Choose Season ' + target.s + ', then press Continue.'
+        : 'Open the episode list so the tracker can read the selected season.';
+      return;
     }
-    const badge = leaves(epPattern).find(el => Number(el.textContent.trim().match(epPattern)[1]) === target.e);
     const row = badge && rowFor(badge);
-    if (!row) { tip.textContent = 'Open the episode list and choose E' + target.e + '.'; return; }
+    if (!row && !sameEpisode) { tip.textContent = 'Open the episode list and choose E' + target.e + '.'; return; }
     const selectedBefore=selected;
     restoring = true; selected = target.s + '/' + target.e;
     try {
       const detected=active();
-      const changing=detected ? detected!==target.e : !(selectedBefore===target.s+'/'+target.e);
+      const changing = !sameEpisode && (detected ? detected !== Number(target.e) : selectedBefore !== selected);
       const before=media();
       if(changing) badge.click();
       let m;
